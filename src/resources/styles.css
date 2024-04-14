@@ -191,3 +191,13 @@ img {
 video {
   max-width: 100%;
 }
+
+table {
+  border-collapse: collapse;
+  border: 2px solid purple;
+}
+
+tr th, td {
+  padding: 3px;
+  border: 1px solid gray;
+}
