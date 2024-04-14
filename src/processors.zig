@@ -83,10 +83,20 @@ pub const CrossPageLinkProcessor = struct {
         if (full_link_text[0] == '!') {
 
             // inline link to vault file
-            const referenced_file_basename = file_contents[match.start + 3 .. match.end - 2];
+            const raw_reference = file_contents[match.start + 3 .. match.end - 2];
+            var reference_it = std.mem.split(u8, raw_reference, "|");
+            const referenced_file_basename = reference_it.next() orelse {
+                logger.err(
+                    "no name given to crosslink. raw ref '{s}'",
+                    .{raw_reference},
+                );
+                return error.InvalidLinksFound;
+            };
+            const maybe_alt_text = reference_it.next();
+
             const fspath = ctx.titles.get(referenced_file_basename) orelse {
                 logger.err(
-                    "referenced name: {s} not found",
+                    "referenced name: '{s}' not found",
                     .{referenced_file_basename},
                 );
                 return error.InvalidLinksFound;
@@ -105,12 +115,25 @@ pub const CrossPageLinkProcessor = struct {
             const file_type = try tinymagic.fileTypeFromPath(fspath);
 
             switch (file_type) {
-                .image => try pctx.out.print(
-                    "<img src=\"{s}\">",
-                    .{
-                        ctx.webPath("/images/{s}", .{referenced_file_basename}),
-                    },
-                ),
+                .image => {
+                    try pctx.out.print(
+                        "<img src=\"{s}\"",
+                        .{
+                            ctx.webPath("/images/{s}", .{referenced_file_basename}),
+                        },
+                    );
+                    if (maybe_alt_text) |alt_text| {
+                        try pctx.out.print(
+                            "alt=\"{s}\"",
+                            .{alt_text},
+                        );
+                    }
+
+                    try pctx.out.print(
+                        ">",
+                        .{},
+                    );
+                },
                 .video => try pctx.out.print(
                     "<video src=\"{s}\" controls>",
                     .{
