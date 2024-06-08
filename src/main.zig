@@ -922,6 +922,17 @@ fn writeHead(writer: anytype, build_file: BuildFile, title: []const u8, maybe_pa
         try writer.print(
             \\ <meta property="og:description" content="{s}" />
         , .{util.unsafeHTML(try page.fetchPreview(&buffer))});
+
+        if (page.page_type == .canvas) {
+            // inject canvas.js
+            try writer.print(
+                \\    <script src="{s}/canvas.js"></script>
+                \\    <script src="{s}/prism.js"></script>
+            , .{
+                build_file.config.webroot,
+                build_file.config.webroot,
+            });
+        }
     }
 
     try writer.print(
@@ -960,6 +971,8 @@ fn createStaticResources(ctx: Context) !void {
     const RESOURCES = .{
         .{ "resources/styles.css", "styles.css" },
         .{ "resources/main.js", "main.js" },
+        .{ "resources/canvas.js", "canvas.js" },
+        .{ "resources/prism.js", "prism.js" },
         .{ "resources/pygments.css", "pygments.css" },
     };
 

@@ -6,6 +6,7 @@ const Context = main.Context;
 const OwnedStringList = main.OwnedStringList;
 const logger = std.log.scoped(.obsidian2web_page);
 
+page_type: PageType,
 ctx: *const Context,
 filesystem_path: []const u8,
 title: []const u8,
@@ -25,6 +26,8 @@ pub const State = union(enum) {
     main: void,
     post: void,
 };
+
+pub const PageType = enum { md, canvas };
 
 pub const PageAttributes = struct {
     ctime: i64,
@@ -155,8 +158,13 @@ pub const PageAttributes = struct {
 
 /// assumes given path is a ".md" file.
 pub fn fromPath(ctx: *const Context, fspath: []const u8) !Self {
+    const title_offset: usize =
+        if (std.mem.endsWith(u8, fspath, ".md")) 3 else if (std.mem.endsWith(u8, fspath, ".canvas")) 7 else return error.InvalidPath;
+    const page_type: PageType =
+        if (std.mem.endsWith(u8, fspath, ".md")) .md else if (std.mem.endsWith(u8, fspath, ".canvas")) .canvas else unreachable;
+
     const title_raw = std.fs.path.basename(fspath);
-    const title = title_raw[0 .. title_raw.len - 3];
+    const title = title_raw[0 .. title_raw.len - title_offset];
     logger.info("create page with title '{s}' @ {s}", .{ title, fspath });
 
     var file = try std.fs.cwd().openFile(fspath, .{});
@@ -164,6 +172,7 @@ pub fn fromPath(ctx: *const Context, fspath: []const u8) !Self {
     const attributes = try PageAttributes.fromFile(file);
 
     return Self{
+        .page_type = page_type,
         .ctx = ctx,
         .filesystem_path = fspath,
         .attributes = attributes,
@@ -213,12 +222,20 @@ pub fn fetchHtmlPath(self: Self, allocator: std.mem.Allocator) ![]const u8 {
     );
     defer allocator.free(raw_output_path);
 
-    return try util.replaceStrings(
-        allocator,
-        raw_output_path,
-        ".md",
-        ".html",
-    );
+    switch (self.page_type) {
+        .md => return try util.replaceStrings(
+            allocator,
+            raw_output_path,
+            ".md",
+            ".html",
+        ),
+        .canvas => return try util.replaceStrings(
+            allocator,
+            raw_output_path,
+            ".canvas",
+            ".html",
+        ),
+    }
 }
 
 pub fn fetchWebPath(
