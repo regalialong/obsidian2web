@@ -1,5 +1,6 @@
 zig-out/
 zig-cache/
+src/entities.zig
 .zigmod/
 .zigmod
 deps.zig
