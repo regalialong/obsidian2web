@@ -18,6 +18,19 @@
   --color-ui-3: #b40e7a;
   --color-ax-1: #8B0A5F;
 
+  --canvas-card-red: #fb464c;
+  --canvas-card-dark-red: #500;
+  --canvas-card-orange: #e9973f;
+  --canvas-card-dark-orange: #5b3b15;
+  --canvas-card-yellow: #e0de71;
+  --canvas-card-dark-yellow: #464121;
+  --canvas-card-green: #44cf6e;
+  --canvas-card-dark-green: #1f5b2e;
+  --canvas-card-cyan: #53dfdd;
+  --canvas-card-dark-cyan: #215555;
+  --canvas-card-purple: #a882ff;
+  --canvas-card-dark-purple: #433566;
+
   text-rendering: optimizeLegibility;
   font-family: var(--default-font);
   line-height: 1.5em;
@@ -216,8 +229,29 @@ tr th, td {
 
 /* canvas.css (cooked by me) */
 
-.canvas-color-0 {
-  --node-bg-color: #00ff00;
+.o2w-canvas-color-1 {
+  --color-ui-1: var(--canvas-card-red);
+  --color-bg-1: var(--canvas-card-dark-red);
+}
+.o2w-canvas-color-2 {
+  --color-ui-1: var(--canvas-card-orange);
+  --color-bg-1: var(--canvas-card-dark-orange);
+}
+.o2w-canvas-color-3 {
+  --color-ui-1: var(--canvas-card-yellow);
+  --color-bg-1: var(--canvas-card-dark-yellow);
+}
+.o2w-canvas-color-4 {
+  --color-ui-1: var(--canvas-card-green);
+  --color-bg-1: var(--canvas-card-dark-green);
+}
+.o2w-canvas-color-5 {
+  --color-ui-1: var(--canvas-card-cyan);
+  --color-bg-1: var(--canvas-card-dark-cyan);
+}
+.o2w-canvas-color-6 {
+  --color-ui-1: var(--canvas-card-purple);
+  --color-bg-1: var(--canvas-card-dark-purple);
 }
 
 /* canvas.css (should be synced with upstream)

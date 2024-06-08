@@ -737,18 +737,31 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
                     //var node_doc = try parser.finish();
                     //defer node_doc.deinit();
 
+                    var color_class_buf: [32]u8 = undefined;
+                    var color_style_buf: [128]u8 = undefined;
+                    const color_class = if (std.mem.startsWith(u8, node.color, "#"))
+                        ""
+                    else
+                        std.fmt.bufPrint(&color_class_buf, "o2w-canvas-color-{s}", .{node.color}) catch unreachable;
+
+                    const color_style = if (std.mem.startsWith(u8, node.color, "#"))
+                        // TODO compute darker color
+                        std.fmt.bufPrint(&color_style_buf, "--color-ui-1: {s}; --color-bg-1: {s}", .{ node.color, "#111111" }) catch unreachable
+                    else
+                        "";
                     try output.print(
-                        \\ <node id="{s}" class="node node-text o2w-canvas-color-{s}" data-node-type="{s}" style="left: {d}px; top: {d}px; width: {d}px; height: {d}px;">
+                        \\ <node id="{s}" class="node node-text {s}" data-node-type="{s}" style="left: {d}px; top: {d}px; width: {d}px; height: {d}px; {s}">
                         \\   <div class="node-name"></div>
                         \\   <div class="node-text-content">
                     , .{
                         node.id,
-                        node.color,
+                        color_class,
                         node.type,
                         node.x,
                         node.y,
                         node.width,
                         node.height,
+                        color_style,
                     });
                     // don't parse markdown for now
                     try output.print("{s}\n", .{node.text});
