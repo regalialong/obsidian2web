@@ -214,8 +214,10 @@ pub const Context = struct {
         const owned_fspath = try self.pathAllocator().dupe(u8, path);
 
         // if not a page that should be rendered, add it to only titlemap
+        const must_render =
+            std.mem.endsWith(u8, path, ".md") or std.mem.endsWith(u8, path, ".canvas");
 
-        if (!std.mem.endsWith(u8, path, ".md")) {
+        if (!must_render) {
             const basename = std.fs.path.basename(owned_fspath);
 
             const titles_result = try self.titles.getOrPut(basename);
