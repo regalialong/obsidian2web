@@ -1,3 +1,5 @@
+// https://github.com/obsidianmd/jsoncanvas/blob/main/assets/canvas.js
+// MIT license
 let scale, panOffsetX, panOffsetY;
 
 const ZOOM_SPEED = 0.1;
