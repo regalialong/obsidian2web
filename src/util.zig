@@ -60,7 +60,7 @@ pub fn captureWithCallback(
     while (true) {
         logger.debug("regex at offset {d}", .{offset});
         logger.debug("data to match={s}", .{full_string[offset..]});
-        var maybe_single_capture = try regex.captures(
+        const maybe_single_capture = try regex.captures(
             allocator,
             full_string[offset..],
             options,
@@ -161,7 +161,7 @@ pub fn replaceStrings(
         replace_from,
         replace_to,
     );
-    var buffer = try allocator.alloc(u8, buffer_size);
+    const buffer = try allocator.alloc(u8, buffer_size);
     _ = std.mem.replace(
         u8,
         input,

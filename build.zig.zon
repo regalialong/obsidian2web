@@ -1,0 +1,30 @@
+.{
+    .name = "obsidian2web",
+    .version = "0.1.0",
+    .minimum_zig_version = "0.12.0",
+    .dependencies = .{
+        .@"libpcre.zig" = .{
+            .url = "https://github.com/kivikakk/libpcre.zig/archive/9522ad9bcce76ce608ac62097450d4eac7436d9c.tar.gz",
+            .hash = "1220fa274f41744bc60b284f9264705f772b98afd2ed219cebb6cec744422e8e2692",
+        },
+        .chrono = .{
+            .url = "https://github.com/leroycep/chrono-zig/archive/bedd9339af9b05c240956b137cb1a5b67a9b74b7.tar.gz",
+            .hash = "12200e5959fd68f7b2101eae5b6f23a213712810814cef42f44e112cc7b4f14f0248",
+        },
+        .@"zig-uuid" = .{
+            .url = "https://github.com/nitrogenez/zig-uuid/archive/4fc94de547b84b5db6d93cf50958317b6014e561.tar.gz",
+            .hash = "12206275494db106adf893d237dda64130436e36cb91b60ddc960bd50b938690a8dc",
+        },
+        .koino = .{
+            .url = "https://github.com/lun-4/koino/archive/95935a3e1e4a8e78ff30e45b1b540ec72fcc8f16.tar.gz",
+            .hash = "122098f87570c90010a3965fdff0856ef994594440d335a13d1c67c187d84ff4b02b",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "LICENSE",
+        "README.md",
+    },
+}

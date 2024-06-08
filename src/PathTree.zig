@@ -28,7 +28,7 @@ pub fn init(allocator: std.mem.Allocator) Self {
 fn deinitPageFolder(folder: *PageFolder) void {
     var folder_it = folder.iterator();
     while (folder_it.next()) |entry| {
-        var child = entry.value_ptr;
+        const child = entry.value_ptr;
         switch (child.*) {
             .dir => |*child_folder| deinitPageFolder(child_folder),
             .file => {},

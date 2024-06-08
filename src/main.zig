@@ -8,8 +8,8 @@ const processors = @import("processors.zig");
 const util = @import("util.zig");
 const uuid = @import("uuid");
 
-pub const std_options = struct {
-    pub const log_level = .debug;
+pub const std_options = std.Options{
+    .log_level = .debug,
 };
 
 const logger = std.log.scoped(.obsidian2web);
@@ -20,7 +20,7 @@ const PageMap = std.StringHashMap(Page);
 // article on path a/b/c/d/e.md is mapped as "e" in this title map.
 const TitleMap = std.StringHashMap([]const u8);
 
-const PathTree = @import("./PathTree.zig");
+const PathTree = @import("PathTree.zig");
 pub const StringBuffer = std.ArrayList(u8);
 pub const SliceList = std.ArrayList([]const u8);
 
@@ -89,7 +89,7 @@ fn writePageTree(
             .{util.unsafeHTML(folder_name)},
         );
 
-        var child_context = TreeGeneratorContext{
+        const child_context = TreeGeneratorContext{
             .indentation_level = tree_context.indentation_level + 1,
             .current_folder = child_folder,
         };
@@ -171,7 +171,7 @@ pub const ArenaHolder = struct {
 pub const Context = struct {
     allocator: std.mem.Allocator,
     build_file: BuildFile,
-    vault_dir: std.fs.IterableDir,
+    vault_dir: std.fs.Dir,
     arenas: ArenaHolder,
     pages: PageMap,
     titles: TitleMap,
@@ -182,7 +182,7 @@ pub const Context = struct {
     pub fn init(
         allocator: std.mem.Allocator,
         build_file: BuildFile,
-        vault_dir: std.fs.IterableDir,
+        vault_dir: std.fs.Dir,
     ) Self {
         return Self{
             .allocator = allocator,
@@ -218,7 +218,7 @@ pub const Context = struct {
         if (!std.mem.endsWith(u8, path, ".md")) {
             const basename = std.fs.path.basename(owned_fspath);
 
-            var titles_result = try self.titles.getOrPut(basename);
+            const titles_result = try self.titles.getOrPut(basename);
             if (!titles_result.found_existing) {
                 titles_result.value_ptr.* = owned_fspath;
             }
@@ -226,9 +226,9 @@ pub const Context = struct {
             return;
         }
 
-        var pages_result = try self.pages.getOrPut(owned_fspath);
+        const pages_result = try self.pages.getOrPut(owned_fspath);
         if (!pages_result.found_existing) {
-            var page = try Page.fromPath(self, owned_fspath);
+            const page = try Page.fromPath(self, owned_fspath);
             pages_result.value_ptr.* = page;
             try self.titles.put(page.title, page.filesystem_path);
             try self.tree.addPath(page.filesystem_path);
@@ -270,9 +270,9 @@ pub fn iterateVaultPath(ctx: *Context) !void {
         logger.info("including given path: '{s}'", .{absolute_include_path});
 
         // attempt to openDir first, if it fails assume file
-        var included_dir = std.fs.cwd().openIterableDir(
+        var included_dir = std.fs.cwd().openDir(
             absolute_include_path,
-            .{},
+            .{ .iterate = true },
         ) catch |err| switch (err) {
             error.NotDir => {
                 try ctx.addPage(absolute_include_path);
@@ -309,7 +309,7 @@ pub fn main() anyerror!void {
     var allocator_instance = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = allocator_instance.deinit();
 
-    var allocator = allocator_instance.allocator();
+    const allocator = allocator_instance.allocator();
 
     var args_it = std.process.args();
     defer args_it.deinit();
@@ -337,7 +337,7 @@ pub fn main() anyerror!void {
     var build_file = try BuildFile.parse(allocator, build_file_data);
     defer build_file.deinit();
 
-    var vault_dir = try std.fs.cwd().openIterableDir(build_file.vault_path, .{});
+    var vault_dir = try std.fs.cwd().openDir(build_file.vault_path, .{ .iterate = true });
     defer vault_dir.close();
 
     var ctx = Context.init(allocator, build_file, vault_dir);
@@ -374,7 +374,7 @@ pub fn main() anyerror!void {
         const fspath = entry.value_ptr.*;
         const maybe_page = ctx.pages.get(fspath);
         if (maybe_page != null) continue;
-        var output_path_buffer: [std.os.PATH_MAX]u8 = undefined;
+        var output_path_buffer: [std.posix.PATH_MAX]u8 = undefined;
         const output_path = try std.fmt.bufPrint(
             &output_path_buffer,
             "public/images/{s}",
@@ -458,7 +458,7 @@ pub fn runProcessors(
 ) !void {
     logger.info("running processors processing {} {}", .{ page, options });
 
-    var temp_output_path: []const u8 = if (options.pre) blk: {
+    const temp_output_path: []const u8 = if (options.pre) blk: {
         std.debug.assert(page.state == .unbuilt);
         var markdown_output_path = "/tmp/sex.md"; // TODO fetchTemporaryMarkdownPath();
 
@@ -495,7 +495,7 @@ pub fn runProcessors(
     inline for (
         @typeInfo(@typeInfo(@TypeOf(processor_list)).Pointer.child).Struct.fields,
     ) |field| {
-        var processor = @field(processor_list, field.name);
+        const processor = @field(processor_list, field.name);
         logger.debug("running {s}", .{@typeName(field.type)});
 
         const output_file_contents = blk: {
@@ -615,7 +615,7 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
     defer doc.deinit();
 
     var output_fd = blk: {
-        var html_path = try page.fetchHtmlPath(ctx.allocator);
+        const html_path = try page.fetchHtmlPath(ctx.allocator);
         defer ctx.allocator.free(html_path);
         logger.info("writing to '{s}'", .{html_path});
 
@@ -734,7 +734,7 @@ fn generateTagPages(ctx: Context) !void {
 
     var it = ctx.pages.iterator();
     while (it.next()) |entry| {
-        var page = entry.value_ptr;
+        const page = entry.value_ptr;
         logger.debug("processing tags in {}", .{page});
 
         if (page.tags) |tags| for (tags.items) |tag| {
@@ -751,7 +751,7 @@ fn generateTagPages(ctx: Context) !void {
 
     var tags_it = tag_map.iterator();
     while (tags_it.next()) |entry| {
-        var tag_name = entry.key_ptr.*;
+        const tag_name = entry.key_ptr.*;
         logger.info("generating tag page: {s}", .{tag_name});
         var buf: [512]u8 = undefined;
         const output_path = try std.fmt.bufPrint(
@@ -853,7 +853,7 @@ fn generateTagIndex(ctx: Context, tag_map: TagMap) !void {
 
     var tags_it = tag_map.iterator();
     while (tags_it.next()) |entry| {
-        var tag_name = entry.key_ptr.*;
+        const tag_name = entry.key_ptr.*;
         try tags.append(tag_name);
     }
 
@@ -1009,7 +1009,7 @@ fn toRFC822(allocator: std.mem.Allocator, timestamp: i64) ![]const u8 {
     defer env_map.deinit();
     try env_map.put("TZ", "UTC");
 
-    const result = try std.ChildProcess.exec(.{
+    const result = try std.ChildProcess.run(.{
         .allocator = allocator,
         .argv = argv.items,
         .max_output_bytes = 256,
@@ -1084,7 +1084,7 @@ fn generateRSSFeed(ctx: Context, rss_root: []const u8) !void {
     defer pages.deinit();
     var it = ctx.pages.iterator();
     while (it.next()) |entry| {
-        var page = entry.value_ptr;
+        const page = entry.value_ptr;
         try pages.append(page);
     }
 

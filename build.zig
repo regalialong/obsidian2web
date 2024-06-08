@@ -1,7 +1,6 @@
 const std = @import("std");
-const deps = @import("./deps.zig");
 
-pub fn build(b: *std.build.Builder) void {
+pub fn build(b: *std.Build) void {
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -9,14 +8,31 @@ pub fn build(b: *std.build.Builder) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const pcre_pkg = b.dependency("libpcre.zig", .{ .optimize = optimize, .target = target });
+    const chrono_pkg = b.dependency("chrono", .{ .optimize = optimize, .target = target });
+    const koino_pkg = b.dependency("koino", .{ .optimize = optimize, .target = target });
+    const uuid_pkg = b.dependency("zig-uuid", .{ .optimize = optimize, .target = target });
+
+    const Mod = struct { name: []const u8, mod: *std.Build.Module };
+
+    const mod_deps = &[_]Mod{
+        .{ .name = "libpcre", .mod = pcre_pkg.module("libpcre") },
+        .{ .name = "chrono", .mod = chrono_pkg.module("chrono") },
+        .{ .name = "koino", .mod = koino_pkg.module("koino") },
+        .{ .name = "uuid", .mod = uuid_pkg.module("uuid") },
+    };
+
     const exe = b.addExecutable(.{
         .name = "obsidian2web",
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
 
-    deps.addAllTo(exe);
+    for (mod_deps) |dep| {
+        exe.root_module.addImport(dep.name, dep.mod);
+    }
+
     b.installArtifact(exe);
 
     // This *creates* a Run step in the build graph, to be executed when another
@@ -45,11 +61,14 @@ pub fn build(b: *std.build.Builder) void {
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
     const unit_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
-    deps.addAllTo(unit_tests);
+
+    for (mod_deps) |dep| {
+        unit_tests.root_module.addImport(dep.name, dep.mod);
+    }
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
 

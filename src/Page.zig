@@ -41,16 +41,14 @@ pub const PageAttributes = struct {
         const day = try std.fmt.parseInt(u5, it.next().?, 10);
 
         logger.warn("{d} - {} - {d}", .{ year, month, day });
-        const naive_dt = try chrono.NaiveDateTime.ymd_hms(year, month.numeric(), day, 0, 0, 0);
-        logger.debug("dt {}", .{naive_dt.date});
-        const dt = chrono.DateTime.utc(naive_dt, chrono.timezone.UTC);
-        logger.debug("dt {}", .{dt});
-        logger.debug("dt ts {}", .{dt.toTimestamp()});
-        return dt.toTimestamp();
+        const ymd = chrono.date.YearMonthDay.fromNumbers(year, month.numeric(), day);
+        logger.debug("ymd {}", .{ymd});
+
+        return ymd.toDaysSinceUnixEpoch() * std.time.s_per_day;
     }
 
     pub fn fromFile(file: std.fs.File) !@This() {
-        var stat = try file.stat();
+        const stat = try file.stat();
         var self = @This(){
             .ctime = @as(i64, @intCast(@divTrunc(stat.ctime, std.time.ns_per_s))),
         };
@@ -209,7 +207,7 @@ pub fn relativePath(self: Self) []const u8 {
 pub fn fetchHtmlPath(self: Self, allocator: std.mem.Allocator) ![]const u8 {
     // output_path = relative_fspath with ".md" replaced to ".html"
 
-    var raw_output_path = try std.fs.path.resolve(
+    const raw_output_path = try std.fs.path.resolve(
         allocator,
         &[_][]const u8{ "public", self.relativePath() },
     );
@@ -236,12 +234,12 @@ pub fn fetchWebPath(
     //  - replace std.fs.path.sep to '/'
     //  - Uri.escapeString
 
-    var trimmed_output_path = util.stripLeft(
+    const trimmed_output_path = util.stripLeft(
         output_path,
         "public" ++ std.fs.path.sep_str,
     );
 
-    var trimmed_output_path_2 = try util.replaceStrings(
+    const trimmed_output_path_2 = try util.replaceStrings(
         allocator,
         trimmed_output_path,
         std.fs.path.sep_str,

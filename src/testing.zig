@@ -27,7 +27,7 @@ pub const TestContext = struct {
 
         build_file.includes.append(".") catch unreachable;
 
-        var ctx = root.Context.init(allocator, build_file, tmp_dir.iterable_dir);
+        const ctx = root.Context.init(allocator, build_file, tmp_dir.iterable_dir);
 
         return TestContext{
             .ctx = ctx,
@@ -86,7 +86,7 @@ pub fn runTestWithSingleEntry(
 
     var output_file = try std.fs.cwd().openFile(htmlpath, .{});
     defer output_file.close();
-    var output_text = try output_file.reader().readAllAlloc(std.testing.allocator, 1024 * 1024);
+    const output_text = try output_file.reader().readAllAlloc(std.testing.allocator, 1024 * 1024);
     defer allocator.free(output_text);
 
     const maybe_found = std.mem.indexOf(u8, output_text, expected_output);
