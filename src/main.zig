@@ -608,14 +608,6 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
         .render = .{ .hard_breaks = true, .unsafe = true },
     };
 
-    var parser = try koino.parser.Parser.init(ctx.allocator, options);
-    defer parser.deinit();
-
-    try parser.feed(input_page_contents);
-
-    var doc = try parser.finish();
-    defer doc.deinit();
-
     var output_fd = blk: {
         const html_path = try page.fetchHtmlPath(ctx.allocator);
         defer ctx.allocator.free(html_path);
@@ -673,6 +665,15 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
                 try output.print(
                     \\    <h2>{s}</h2><p>
                 , .{util.unsafeHTML(page.title)});
+
+                var parser = try koino.parser.Parser.init(ctx.allocator, options);
+                defer parser.deinit();
+
+                try parser.feed(input_page_contents);
+
+                var doc = try parser.finish();
+                defer doc.deinit();
+
                 try koino.html.print(output, ctx.allocator, options, doc);
             },
             .canvas => {
@@ -728,14 +729,13 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
                 for (canvas.nodes) |node| {
                     // print an html node for each
 
-                    //var node_parser = try koino.parser.Parser.init(ctx.allocator, options);
-                    //defer node_parser.deinit();
+                    var node_parser = try koino.parser.Parser.init(ctx.allocator, options);
+                    defer node_parser.deinit();
 
-                    //logger.debug("nod {s}", .{node.text});
-                    //try node_parser.feed(node.text);
+                    try node_parser.feed(node.text);
 
-                    //var node_doc = try parser.finish();
-                    //defer node_doc.deinit();
+                    var node_doc = try node_parser.finish();
+                    defer node_doc.deinit();
 
                     var color_class_buf: [32]u8 = undefined;
                     var color_style_buf: [128]u8 = undefined;
@@ -763,9 +763,9 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
                         node.height,
                         color_style,
                     });
+                    //try output.print("{s}\n", .{node.text});
                     // don't parse markdown for now
-                    try output.print("{s}\n", .{node.text});
-                    //try koino.html.print(output, ctx.allocator, options, node_doc);
+                    try koino.html.print(output, ctx.allocator, options, node_doc);
                     try output.print(
                         \\   </div>
                         \\ </node>
