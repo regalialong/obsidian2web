@@ -395,6 +395,7 @@ tr th, td {
   max-width: 48em;
   margin: 0 auto;
 }
+/* o2w
 nav {
   padding: 24px 36px;
   max-width: 48em;
@@ -403,6 +404,7 @@ nav {
   align-items: center;
   gap: 4px;
 }
+*/
 nav #logo {
   flex-grow: 1;
 }
@@ -412,10 +414,12 @@ nav .link {
   padding: 0.25em 0.5em;
   border-radius: 6px;
 }
+/* o2w
 nav .link:hover {
   color: var(--color-bg-1);
   background-color: var(--color-ax-1);
 }
+*/
 .hidenav #navbar {
  display: none;
 }
@@ -522,6 +526,7 @@ nav .link:hover {
 }
 
 /* Page content */
+/* o2w
 h1 {
   line-height: 1.1;
   margin-top: 0.25em;
@@ -659,6 +664,7 @@ button {
 button:hover {
   border-color: var(--color-ui-2);
 }
+*/
 .theme-dark button {
   background-color: var(--color-ui-1);
   color: var(--color-tx-2);
@@ -669,6 +675,7 @@ button:hover {
   border: 1px solid var(--color-ui-3);
 }
 
+/* o2w
 @media (max-width: 800px) {
   body:not(.hidenav) nav {
     padding: 24px;
@@ -707,3 +714,4 @@ button:hover {
 
   }
 }
+*/
