@@ -746,7 +746,7 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
 
                     const color_style = if (std.mem.startsWith(u8, node.color, "#"))
                         // TODO compute darker color
-                        std.fmt.bufPrint(&color_style_buf, "--color-ui-1: {s}; --color-bg-1: {s}", .{ node.color, "#111111" }) catch unreachable
+                        std.fmt.bufPrint(&color_style_buf, "--color-ui-1: {s}; --color-bg-1: color-mix(in srgb, {s} 20%, black)", .{ node.color, node.color }) catch unreachable
                     else
                         "";
                     try output.print(

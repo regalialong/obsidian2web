@@ -19,17 +19,17 @@
   --color-ax-1: #8B0A5F;
 
   --canvas-card-red: #fb464c;
-  --canvas-card-dark-red: #500;
+  --canvas-card-dark-red: color-mix(in srgb, var(--canvas-card-red) 20%, black);
   --canvas-card-orange: #e9973f;
-  --canvas-card-dark-orange: #5b3b15;
+  --canvas-card-dark-orange: color-mix(in srgb, var(--canvas-card-orange) 20%, black);
   --canvas-card-yellow: #e0de71;
-  --canvas-card-dark-yellow: #464121;
+  --canvas-card-dark-yellow: color-mix(in srgb, var(--canvas-card-yellow) 20%, black);
   --canvas-card-green: #44cf6e;
-  --canvas-card-dark-green: #1f5b2e;
+  --canvas-card-dark-green: color-mix(in srgb, var(--canvas-card-green) 20%, black);
   --canvas-card-cyan: #53dfdd;
-  --canvas-card-dark-cyan: #215555;
+  --canvas-card-dark-cyan: color-mix(in srgb, var(--canvas-card-cyan) 20%, black);
   --canvas-card-purple: #a882ff;
-  --canvas-card-dark-purple: #433566;
+  --canvas-card-dark-purple: color-mix(in srgb, var(--canvas-card-purple) 20%, black);
 
   text-rendering: optimizeLegibility;
   font-family: var(--default-font);
