@@ -16,8 +16,8 @@
             .hash = "12206275494db106adf893d237dda64130436e36cb91b60ddc960bd50b938690a8dc",
         },
         .koino = .{
-            .url = "https://github.com/lun-4/koino/archive/95935a3e1e4a8e78ff30e45b1b540ec72fcc8f16.tar.gz",
-            .hash = "122098f87570c90010a3965fdff0856ef994594440d335a13d1c67c187d84ff4b02b",
+            .url = "https://github.com/lun-4/koino/archive/e1acea70701207c5830b88389f147d9fd1f0e01c.tar.gz",
+            .hash = "122002f94548aa45fac670d07ddee72235acdf7aad770daaf1bc4b7b309241f54a8c",
         },
     },
     .paths = .{
