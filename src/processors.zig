@@ -150,10 +150,10 @@ pub const CrossPageLinkProcessor = struct {
                 .{ pctx.page.title, referenced_title },
             );
 
-            var maybe_page_local_path = ctx.titles.get(referenced_title);
+            const maybe_page_local_path = ctx.titles.get(referenced_title);
             if (maybe_page_local_path) |page_local_path| {
                 var referenced_page = ctx.pages.get(page_local_path).?;
-                var web_path = try referenced_page.fetchWebPath(pctx.ctx.allocator);
+                const web_path = try referenced_page.fetchWebPath(pctx.ctx.allocator);
                 defer pctx.ctx.allocator.free(web_path);
 
                 logger.debug(
@@ -213,7 +213,7 @@ test "cross page link processor" {
 
         var output_file = try std.fs.cwd().openFile(htmlpath, .{});
         defer output_file.close();
-        var output_text = try output_file.reader().readAllAlloc(std.testing.allocator, 1024);
+        const output_text = try output_file.reader().readAllAlloc(std.testing.allocator, 1024);
         defer allocator.free(output_text);
 
         const maybe_found = std.mem.indexOf(u8, output_text, expected_page_output);
@@ -303,7 +303,7 @@ test "tag processor" {
         try testing.runTestWithSingleEntry(&test_ctx, "test", input, expected_output);
 
         var pages_it = test_ctx.ctx.pages.iterator();
-        var page = pages_it.next().?.value_ptr;
+        const page = pages_it.next().?.value_ptr;
         try std.testing.expectEqualSlices(
             u8,
             expected_tag_entry,
@@ -417,7 +417,7 @@ test "table of contents processor" {
         try testing.runTestWithSingleEntry(&test_ctx, "test", input, expected_output);
 
         var pages_it = test_ctx.ctx.pages.iterator();
-        var page = pages_it.next().?.value_ptr;
+        const page = pages_it.next().?.value_ptr;
         try std.testing.expectEqualSlices(
             u8,
             expected_title_entry,
@@ -486,7 +486,7 @@ pub const CodeblockProcessor = struct {
             "/tmp/o2w_sex2",
         });
 
-        const result = try std.ChildProcess.exec(.{
+        const result = try std.ChildProcess.run(.{
             .allocator = ctx.allocator,
             .argv = argv.items,
             .max_output_bytes = 100 * 1024,
@@ -563,7 +563,7 @@ pub const SetFirstImageProcessor = struct {
         _ = try pctx.out.write(full_data);
 
         for (captures, 0..) |maybe_cap, idx| {
-            var cap = maybe_cap orelse {
+            const cap = maybe_cap orelse {
                 std.debug.print("cap skip\n", .{});
                 continue;
             };
@@ -641,7 +641,7 @@ pub const StaticTwitterEmbed = struct {
         var dir = try std.fs.cwd().openDir(static_twitter_folder, .{});
         defer dir.close();
 
-        var pathbuffer: [std.os.PATH_MAX]u8 = undefined;
+        var pathbuffer: [std.posix.PATH_MAX]u8 = undefined;
         const pathname = try std.fmt.bufPrint(&pathbuffer, "{s}.jsonl", .{twitter_id});
         logger.info("path: {s}", .{pathname});
 
@@ -681,7 +681,7 @@ pub const StaticTwitterEmbed = struct {
                     else => return error.InvalidTermCode,
                 }
 
-                try std.os.fsync(new_file.handle);
+                try std.posix.fsync(new_file.handle);
                 new_file.close();
 
                 break :blk try dir.openFile(pathname, .{ .mode = .read_only });
@@ -793,7 +793,7 @@ pub const RecentPagesProcessor = struct {
         defer pages.deinit();
         var it = ctx.pages.iterator();
         while (it.next()) |entry| {
-            var page = entry.value_ptr;
+            const page = entry.value_ptr;
             try pages.append(page);
         }
 
@@ -808,7 +808,7 @@ pub const RecentPagesProcessor = struct {
 
         for (pages.items, 0..) |page, idx| {
             if (idx > 10) break;
-            var web_path = try page.fetchWebPath(ctx.allocator);
+            const web_path = try page.fetchWebPath(ctx.allocator);
             defer pctx.ctx.allocator.free(web_path);
 
             const page_age = page.age();
