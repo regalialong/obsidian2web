@@ -686,16 +686,17 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
                     height: usize,
                     type: []const u8,
                     text: []const u8,
+                    color: []const u8 = "0",
                 };
 
                 const CanvasEdge = struct {
                     id: []const u8,
                     fromNode: []const u8,
                     fromSide: []const u8,
-                    fromEnd: ?[]const u8 = null,
+                    fromEnd: ?[]const u8 = "none",
                     toNode: []const u8,
                     toSide: []const u8,
-                    toEnd: ?[]const u8 = null,
+                    toEnd: ?[]const u8 = "arrow",
                 };
 
                 const CanvasData = struct {
@@ -737,14 +738,17 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
                     //defer node_doc.deinit();
 
                     try output.print(
-                        \\ <node id="{s}" class="node node-text" data-node-type="{s}" style="left: {d}px; top: {d}px;">
+                        \\ <node id="{s}" class="node node-text o2w-canvas-color-{s}" data-node-type="{s}" style="left: {d}px; top: {d}px; width: {d}px; height: {d}px;">
                         \\   <div class="node-name"></div>
                         \\   <div class="node-text-content">
                     , .{
                         node.id,
+                        node.color,
                         node.type,
                         node.x,
                         node.y,
+                        node.width,
+                        node.height,
                     });
                     // don't parse markdown for now
                     try output.print("{s}\n", .{node.text});

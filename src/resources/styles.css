@@ -7,6 +7,17 @@
   --font-monospace: "Source Code Pro", monospace;
   --text-normal: #dcddde;
   --editor-font-size: 16px;
+
+  /* canvas.css stuff */
+  --color-bg-1: var(--background-primary-alt);
+  --color-bg-2: var(--background-primary);
+  --color-tx-1: #fff;
+  --color-tx-2: #a28397;
+  --color-ui-1: #3F062D;
+  --color-ui-2: #68154C;
+  --color-ui-3: #b40e7a;
+  --color-ax-1: #8B0A5F;
+
   text-rendering: optimizeLegibility;
   font-family: var(--default-font);
   line-height: 1.5em;
@@ -203,7 +214,13 @@ tr th, td {
   border: 1px solid gray;
 }
 
-/* canvas.css
+/* canvas.css (cooked by me) */
+
+.canvas-color-0 {
+  --node-bg-color: #00ff00;
+}
+
+/* canvas.css (should be synced with upstream)
  */
 
 /* Canvas area */
