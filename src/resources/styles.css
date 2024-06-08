@@ -61,6 +61,7 @@ footer {
 .toc {
   flex: 1 1 auto;
   margin-bottom: 4rem;
+  z-index: 2;
 }
 
 .text {
