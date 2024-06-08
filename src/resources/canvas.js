@@ -1,4 +1,3 @@
-// Initial state of the canvas
 let scale, panOffsetX, panOffsetY;
 
 const ZOOM_SPEED = 0.1;

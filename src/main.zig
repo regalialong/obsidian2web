@@ -668,10 +668,162 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
             \\  </nav>
             \\  <main class="text">
         , .{});
-        try output.print(
-            \\    <h2>{s}</h2><p>
-        , .{util.unsafeHTML(page.title)});
-        try koino.html.print(output, ctx.allocator, options, doc);
+        switch (page.page_type) {
+            .md => {
+                try output.print(
+                    \\    <h2>{s}</h2><p>
+                , .{util.unsafeHTML(page.title)});
+                try koino.html.print(output, ctx.allocator, options, doc);
+            },
+            .canvas => {
+                // base canvas html goes here
+
+                const CanvasNode = struct {
+                    id: []const u8,
+                    x: isize,
+                    y: isize,
+                    width: usize,
+                    height: usize,
+                    type: []const u8,
+                    text: []const u8,
+                };
+
+                const CanvasEdge = struct {
+                    id: []const u8,
+                    fromNode: []const u8,
+                    fromSide: []const u8,
+                    fromEnd: ?[]const u8 = null,
+                    toNode: []const u8,
+                    toSide: []const u8,
+                    toEnd: ?[]const u8 = null,
+                };
+
+                const CanvasData = struct {
+                    nodes: []CanvasNode,
+                    edges: []CanvasEdge,
+                };
+
+                var parsed = try std.json.parseFromSlice(CanvasData, ctx.allocator, input_page_contents, .{ .allocate = .alloc_always });
+                defer parsed.deinit();
+
+                const canvas = parsed.value;
+
+                try output.print(
+                    \\  <div id="container">
+                    \\    <div id="canvas-container">
+                    \\      <svg id="canvas-edges">
+                    \\        <defs>
+                    \\          <marker id="arrowhead" markerWidth="10" markerHeight="8"
+                    \\          refX="5" refY="4" orient="auto">
+                    \\            <polygon points="0 0, 10 4, 0 8"/>
+                    \\          </marker>
+                    \\        </defs>
+                    \\        <g id="edge-paths">
+                    \\        </g>
+                    \\      </svg>
+                    \\      <div id="canvas-nodes">
+                , .{});
+
+                for (canvas.nodes) |node| {
+                    // print an html node for each
+
+                    //var node_parser = try koino.parser.Parser.init(ctx.allocator, options);
+                    //defer node_parser.deinit();
+
+                    //logger.debug("nod {s}", .{node.text});
+                    //try node_parser.feed(node.text);
+
+                    //var node_doc = try parser.finish();
+                    //defer node_doc.deinit();
+
+                    try output.print(
+                        \\ <node id="{s}" class="node node-text" data-node-type="{s}" style="left: {d}px; top: {d}px;">
+                        \\   <div class="node-name"></div>
+                        \\   <div class="node-text-content">
+                    , .{
+                        node.id,
+                        node.type,
+                        node.x,
+                        node.y,
+                    });
+                    // don't parse markdown for now
+                    try output.print("{s}\n", .{node.text});
+                    //try koino.html.print(output, ctx.allocator, options, node_doc);
+                    try output.print(
+                        \\   </div>
+                        \\ </node>
+                    , .{});
+                }
+
+                try output.print(
+                    \\      </div>
+                    \\      <div id="output" class="theme-dark hidden">
+                    \\        <div class="code-header">
+                    \\          <span class="language">JSON&nbsp;Canvas</span>
+                    \\          <span class="close-output">×</span>
+                    \\        </div>
+                    \\        <div id="output-code">
+                    \\          <pre><code class="language-json" id="positionsOutput"></code></pre>
+                    \\        </div>
+                    \\         <div class="code-footer">
+                    \\          <button class="button-copy">Copy code</button>
+                    \\          <button class="button-download">Download file</button>
+                    \\        </div>
+                    \\      </div>
+                    \\      <div id="controls">
+                    \\        <div id="zoom-controls">
+                    \\          <button id="toggle-output">Toggle output</button>
+                    \\          <button id="zoom-out">Zoom out</button>
+                    \\          <button id="zoom-in">Zoom in</button>
+                    \\          <button id="zoom-reset">Reset</button>
+                    \\        </div>
+                    \\      </div>
+                    \\    </div>
+                    \\  </div>
+                    \\
+                , .{});
+
+                try output.print(
+                    \\ <script>
+                    \\ let edges = [
+                , .{});
+                for (canvas.edges) |edge| {
+                    try output.print(
+                        \\    {{
+                        \\      id: "{s}",
+                        \\      fromNode: "{s}",
+                        \\      fromSide: "{s}",
+                        \\      fromEnd: "{s}",
+                        \\      toNode: "{s}",
+                        \\      toSide: "{s}",
+                        \\      toEnd: "{s}",
+                        \\    }},
+                    , .{
+                        edge.id,
+                        edge.fromNode,
+                        edge.fromSide,
+                        if (edge.fromEnd) |end| end else "none",
+                        edge.toNode,
+                        edge.toSide,
+                        if (edge.toEnd) |end| end else "none",
+                    });
+                }
+                try output.print(
+                    \\ ];
+                    \\ </script>
+                , .{});
+
+                // inject canvas.js at the end (due to edges declaration)
+                try output.print(
+                // TODO do we need prism?
+                    \\    <script src="{s}/prism.js"></script>
+                    \\    <script src="{s}/canvas.js"></script>
+                , .{
+                    ctx.build_file.config.webroot,
+                    ctx.build_file.config.webroot,
+                });
+            },
+        }
 
         try output.print(
             \\  </p></main>
@@ -924,17 +1076,6 @@ fn writeHead(writer: anytype, build_file: BuildFile, title: []const u8, maybe_pa
         try writer.print(
             \\ <meta property="og:description" content="{s}" />
         , .{util.unsafeHTML(try page.fetchPreview(&buffer))});
-
-        if (page.page_type == .canvas) {
-            // inject canvas.js
-            try writer.print(
-                \\    <script src="{s}/canvas.js"></script>
-                \\    <script src="{s}/prism.js"></script>
-            , .{
-                build_file.config.webroot,
-                build_file.config.webroot,
-            });
-        }
     }
 
     try writer.print(
