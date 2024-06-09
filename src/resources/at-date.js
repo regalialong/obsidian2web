@@ -5,8 +5,6 @@ class AtDate extends HTMLElement {
     super();
   }
 
-  static observedAttributes = ["datetime"];
-
   connectedCallback() {
     const innerText = this.innerText || this.textContent;
     const dateText = innerText?.trim().slice(4) ?? "";
