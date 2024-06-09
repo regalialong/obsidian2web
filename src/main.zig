@@ -420,6 +420,7 @@ pub const PreProcessors = struct {
     page_toc: processors.TableOfContentsProcessor,
     set_first_image: processors.SetFirstImageProcessor,
     twitter: processors.StaticTwitterEmbed,
+    at_dates: processors.AtDatesProcessor,
 };
 
 pub fn initProcessors(comptime ProcessorHolderT: type) !ProcessorHolderT {
@@ -1097,6 +1098,7 @@ fn writeHead(writer: anytype, build_file: BuildFile, title: []const u8, maybe_pa
 
     try writer.print(
         \\    <script src="{s}/main.js"></script>
+        \\    <script src="{s}/at-date.js"></script>
         \\    <link rel="stylesheet" href="{s}/styles.css">
         \\    <link rel="stylesheet" href="{s}/pygments.css">
         \\  </head>

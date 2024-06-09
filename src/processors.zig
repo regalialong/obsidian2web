@@ -826,3 +826,45 @@ pub const RecentPagesProcessor = struct {
         try pctx.out.print("</ul>", .{});
     }
 };
+
+pub const AtDatesProcessor = struct {
+    regex: libpcre.Regex,
+
+    const REGEX = "%at=\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}";
+    const Self = @This();
+
+    pub fn init() !Self {
+        return Self{
+            .regex = try libpcre.Regex.compile(REGEX, DefaultRegexOptions),
+        };
+    }
+
+    pub fn deinit(self: Self) void {
+        self.regex.deinit();
+    }
+
+    pub fn handle(
+        self: Self,
+        /// Processor context. `pctx.ctx` gives Context
+        pctx: anytype,
+        file_contents: []const u8,
+        captures: []?libpcre.Capture,
+    ) !void {
+        _ = self;
+        const match = captures[0].?;
+        const check = file_contents[match.start..match.end];
+        try pctx.out.print("<at-time>{s}</at-time>", .{check});
+    }
+};
+
+test "at-date processor" {
+    std.testing.log_level = .debug;
+    const TEST_DATA = .{
+        .{
+            "%at=2023-03-29T00:40:34",
+            "<at-time>%at=2023-03-29T00:40:34</at-time>",
+        },
+    };
+
+    try testing.runTestWithDataset(TEST_DATA);
+}
