@@ -694,11 +694,12 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
                 const CanvasEdge = struct {
                     id: []const u8,
                     fromNode: []const u8,
-                    fromSide: []const u8,
+                    fromSide: []const u8 = "bottom", // NOTE: spec does not define the default.
                     fromEnd: ?[]const u8 = "none",
                     toNode: []const u8,
-                    toSide: []const u8,
+                    toSide: []const u8 = "top", // NOTE: spec does not define the default.
                     toEnd: ?[]const u8 = "arrow",
+                    label: ?[]const u8 = null,
                 };
 
                 const CanvasData = struct {
@@ -806,6 +807,7 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
                     \\ let edges = [
                 , .{});
                 for (canvas.edges) |edge| {
+                    var label_buf: [256]u8 = undefined;
                     try output.print(
                         \\    {{
                         \\      id: "{s}",
@@ -815,6 +817,7 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
                         \\      toNode: "{s}",
                         \\      toSide: "{s}",
                         \\      toEnd: "{s}",
+                        \\      label: {s},
                         \\    }},
                     , .{
                         edge.id,
@@ -824,6 +827,7 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
                         edge.toNode,
                         edge.toSide,
                         if (edge.toEnd) |end| end else "none",
+                        if (edge.label) |label| std.fmt.bufPrint(&label_buf, "\"{s}\"", .{label}) catch unreachable else "null",
                     });
                 }
                 try output.print(
