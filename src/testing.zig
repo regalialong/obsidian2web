@@ -1,19 +1,19 @@
 const std = @import("std");
 const root = @import("main.zig");
-var tmp_dir_realpath_buffer: [std.os.PATH_MAX]u8 = undefined;
+var tmp_dir_realpath_buffer: [std.posix.PATH_MAX]u8 = undefined;
 const logger = std.log.scoped(.obsidian2web_testing);
 pub const TestContext = struct {
     ctx: root.Context,
-    tmp_dir: std.testing.TmpIterableDir,
+    tmp_dir: std.testing.TmpDir,
     build_file: root.BuildFile,
 
     const Self = @This();
     const allocator = std.testing.allocator;
 
     pub fn init() TestContext {
-        var tmp_dir = std.testing.tmpIterableDir(.{});
+        var tmp_dir = std.testing.tmpDir(.{ .iterate = true });
 
-        const tmp_dir_realpath = tmp_dir.iterable_dir.dir.realpath(
+        const tmp_dir_realpath = tmp_dir.dir.realpath(
             ".",
             &tmp_dir_realpath_buffer,
         ) catch unreachable;
@@ -27,7 +27,7 @@ pub const TestContext = struct {
 
         build_file.includes.append(".") catch unreachable;
 
-        const ctx = root.Context.init(allocator, build_file, tmp_dir.iterable_dir);
+        const ctx = root.Context.init(allocator, build_file, tmp_dir.dir);
 
         return TestContext{
             .ctx = ctx,
@@ -37,7 +37,7 @@ pub const TestContext = struct {
     }
 
     pub fn createPage(self: *Self, comptime title: []const u8, data: []const u8) !void {
-        var file = try self.tmp_dir.iterable_dir.dir.createFile(title ++ ".md", .{});
+        var file = try self.tmp_dir.dir.createFile(title ++ ".md", .{});
         defer file.close();
         _ = try file.write(data);
     }

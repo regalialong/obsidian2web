@@ -98,7 +98,7 @@ pub const PageAttributes = struct {
 
         const attrs = try This.fromFile(file);
 
-        const delta = try std.math.absInt(attrs.ctime - current_time);
+        const delta = @abs(attrs.ctime - current_time);
         logger.debug("curtime = {d}", .{current_time});
         logger.debug("ctime = {d}", .{attrs.ctime});
         logger.debug("delta = {d}", .{delta});
@@ -116,10 +116,10 @@ pub const PageAttributes = struct {
 
         const month_from_curtime = date_from_curtime.calculateMonthDay();
 
-        const naive_dt = try chrono.NaiveDateTime.from_timestamp(attrs.ctime, 0);
-        try std.testing.expectEqual(date_from_curtime.year, @as(u16, @intCast(naive_dt.date.year())));
-        try std.testing.expectEqual(month_from_curtime.month.numeric(), naive_dt.date.month().number());
-        try std.testing.expectEqual(month_from_curtime.day_index + 1, naive_dt.date.day());
+        const naive_dt = chrono.date.YearMonthDay.fromDaysSinceUnixEpoch(@truncate(@divTrunc(attrs.ctime, std.time.s_per_day)));
+        try std.testing.expectEqual(date_from_curtime.year, @as(u16, @intCast(naive_dt.year)));
+        try std.testing.expectEqual(month_from_curtime.month.numeric(), naive_dt.month.number());
+        try std.testing.expectEqual(month_from_curtime.day_index + 1, naive_dt.day);
     }
 
     test "parses ctime" {
@@ -138,11 +138,11 @@ pub const PageAttributes = struct {
         );
         try file.seekTo(0);
         const attrs = try This.fromFile(file);
-        const naive_dt = try chrono.NaiveDateTime.from_timestamp(attrs.ctime, 0);
+        const naive_dt = chrono.date.YearMonthDay.fromDaysSinceUnixEpoch(@truncate(@divTrunc(attrs.ctime, std.time.s_per_day)));
 
-        try std.testing.expectEqual(@as(i19, 2023), naive_dt.date.year());
-        try std.testing.expectEqual(@as(i19, 3), naive_dt.date.month().number());
-        try std.testing.expectEqual(@as(i19, 4), naive_dt.date.day());
+        try std.testing.expectEqual(@as(i23, 2023), naive_dt.year);
+        try std.testing.expectEqual(@as(u4, 3), naive_dt.month.number());
+        try std.testing.expectEqual(@as(u5, 4), naive_dt.day);
 
         const date_from_attrs = (std.time.epoch.EpochSeconds{
             .secs = @as(u64, @intCast(attrs.ctime)),
