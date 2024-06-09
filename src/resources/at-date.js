@@ -1,36 +1,30 @@
 // @ts-check
 
 class AtDate extends HTMLElement {
+  static observedAttributes = ["datetime"];
+
+  /** @type {ShadowRoot} */
+  shadow;
+
+  /** @type {HTMLTimeElement} */
+  time;
+
+  static formatter = new Intl.DateTimeFormat(undefined, {
+    dateStyle: "long",
+    timeStyle: "long",
+  });
+
   constructor() {
     super();
-  }
 
-  connectedCallback() {
-    const innerText = this.innerText || this.textContent;
-    const dateText = innerText?.trim().slice(4) ?? "";
-
-    const date = new Date(dateText);
-
-    const formatter = new Intl.DateTimeFormat(undefined, {
-      dateStyle: "long",
-      timeStyle: "long",
-    });
-
-    const shadow = this.attachShadow({ mode: "open" });
-
-    const time = document.createElement("time");
-    time.setAttribute("datetime", dateText);
-    const slot = document.createElement("slot");
-
-    time.appendChild(slot);
-    shadow.appendChild(time);
+    this.shadow = this.attachShadow({ mode: "open" });
 
     const stylesheet = new CSSStyleSheet();
 
     stylesheet.replace(`
       :host {
-        background: var(--color-ui-1, #6683);
-        border: 1px solid var(--color-tx-2, #6688);
+        background: var(--background-primary-alt, #6683);
+        border: 1px solid var(--color-ui-1, #6688);
         border-radius: 0.75em;
         display: inline-block;
         padding: 0.1em 0.5em;
@@ -60,7 +54,7 @@ class AtDate extends HTMLElement {
         position: absolute;
       }
       :host:after {
-        content: "${formatter.format(date)}";
+        content: attr(data-formatted-date);
         position: relative;
         z-index: 4;
       }
@@ -69,7 +63,25 @@ class AtDate extends HTMLElement {
       }
     `);
 
-    shadow.adoptedStyleSheets = [stylesheet];
+    this.shadow.adoptedStyleSheets = [stylesheet];
+
+    this.time = document.createElement("time");
+    const slot = document.createElement("slot");
+    this.time.appendChild(slot);
+    this.shadow.appendChild(this.time);
+  }
+
+  attributeChangedCallback(...args) {
+    this.render();
+    console.log(args);
+  }
+
+  render() {
+    const dateText = this.getAttribute("datetime") ?? "";
+    const date = new Date(dateText);
+    this.time.setAttribute("datetime", dateText);
+
+    this.setAttribute("data-formatted-date", AtDate.formatter.format(date));
   }
 }
 
