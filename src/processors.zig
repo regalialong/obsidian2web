@@ -853,7 +853,7 @@ pub const AtDatesProcessor = struct {
         _ = self;
         const match = captures[0].?;
         const check = file_contents[match.start..match.end];
-        try pctx.out.print("<at-time>{s}</at-time>", .{check});
+        try pctx.out.print("<at-date>{s}</at-date>", .{check});
     }
 };
 
@@ -862,7 +862,7 @@ test "at-date processor" {
     const TEST_DATA = .{
         .{
             "%at=2023-03-29T00:40:34",
-            "<at-time>%at=2023-03-29T00:40:34</at-time>",
+            "<at-date>%at=2023-03-29T00:40:34</at-date>",
         },
     };
 
