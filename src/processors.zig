@@ -830,7 +830,7 @@ pub const RecentPagesProcessor = struct {
 pub const AtDatesProcessor = struct {
     regex: libpcre.Regex,
 
-    const REGEX = "%at=(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2})";
+    const REGEX = "%at=(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?)";
     const Self = @This();
 
     pub fn init() !Self {
@@ -855,7 +855,7 @@ pub const AtDatesProcessor = struct {
         const check = file_contents[match.start..match.end];
         const date_match = captures[1].?;
         const date = file_contents[date_match.start..date_match.end];
-        try pctx.out.print("<at-date datetime=\"{s}\">{s}</at-date>", .{date, check});
+        try pctx.out.print("<at-date datetime=\"{s}\">{s}</at-date>", .{ date, check });
     }
 };
 
