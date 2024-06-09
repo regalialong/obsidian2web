@@ -1108,6 +1108,7 @@ fn writeHead(writer: anytype, build_file: BuildFile, title: []const u8, maybe_pa
         build_file.config.webroot,
         build_file.config.webroot,
         build_file.config.webroot,
+        build_file.config.webroot,
     });
 }
 
