@@ -837,11 +837,8 @@ pub fn mainPass(ctx: *Context, page: *Page) !void {
 
                 // inject canvas.js at the end (due to edges declaration)
                 try output.print(
-                // TODO do we need prism?
-                    \\    <script src="{s}/prism.js"></script>
                     \\    <script src="{s}/canvas.js"></script>
                 , .{
-                    ctx.build_file.config.webroot,
                     ctx.build_file.config.webroot,
                 });
             },

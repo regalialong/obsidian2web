@@ -179,8 +179,6 @@ function updateCanvasData() {
 
   const positionsOutput = document.getElementById('positionsOutput');
   positionsOutput.textContent = JSON.stringify(canvasData, null, 2);
-
-  Prism.highlightElement(positionsOutput);
 }
 
 function getAnchorPoint(node, side) {
