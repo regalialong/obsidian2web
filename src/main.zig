@@ -420,6 +420,7 @@ pub const PreProcessors = struct {
     page_toc: processors.TableOfContentsProcessor,
     set_first_image: processors.SetFirstImageProcessor,
     twitter: processors.StaticTwitterEmbed,
+    at_dates: processors.AtDatesProcessor,
 };
 
 pub fn initProcessors(comptime ProcessorHolderT: type) !ProcessorHolderT {
@@ -1097,12 +1098,14 @@ fn writeHead(writer: anytype, build_file: BuildFile, title: []const u8, maybe_pa
 
     try writer.print(
         \\    <script src="{s}/main.js"></script>
+        \\    <script src="{s}/at-date.js"></script>
         \\    <link rel="stylesheet" href="{s}/styles.css">
         \\    <link rel="stylesheet" href="{s}/pygments.css">
         \\  </head>
         \\  <body>
         \\  <nav class="toc">
     , .{
+        build_file.config.webroot,
         build_file.config.webroot,
         build_file.config.webroot,
         build_file.config.webroot,
@@ -1131,6 +1134,7 @@ fn createStaticResources(ctx: Context) !void {
     const RESOURCES = .{
         .{ "resources/styles.css", "styles.css" },
         .{ "resources/main.js", "main.js" },
+        .{ "resources/at-date.js", "at-date.js" },
         .{ "resources/canvas.js", "canvas.js" },
         .{ "resources/prism.js", "prism.js" },
         .{ "resources/pygments.css", "pygments.css" },
