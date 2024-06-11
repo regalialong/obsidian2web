@@ -16,14 +16,12 @@ i learned this the hard way. one day i'll fix it.)
 # installation
 
 - get a recent master build off https://ziglang.org/download/
-  - tested with `0.11.0-dev.1711+dc1f50e50`
+  - tested with `0.12.0`
 - install libpcre in your system
-- get [zigmod](https://github.com/nektro/zigmod/releases)
 
 ```
 git clone https://github.com/lun-4/obsidian2web.git
 cd obsidian2web
-zigmod fetch
 zig build
 
 # for production / release deployments
