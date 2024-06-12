@@ -1137,7 +1137,6 @@ fn createStaticResources(ctx: Context) !void {
         .{ "resources/main.js", "main.js" },
         .{ "resources/at-date.js", "at-date.js" },
         .{ "resources/canvas.js", "canvas.js" },
-        .{ "resources/prism.js", "prism.js" },
         .{ "resources/pygments.css", "pygments.css" },
     };
 
