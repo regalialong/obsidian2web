@@ -830,7 +830,7 @@ pub const RecentPagesProcessor = struct {
 pub const AtDatesProcessor = struct {
     regex: libpcre.Regex,
 
-    const REGEX = "%at=(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?)";
+    const REGEX = "%at=(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?Z?)";
     const Self = @This();
 
     pub fn init() !Self {
@@ -865,6 +865,10 @@ test "at-date processor" {
         .{
             "%at=2023-03-29T00:40:34",
             "<at-date datetime=\"2023-03-29T00:40:34\">%at=2023-03-29T00:40:34</at-date>",
+        },
+        .{
+            "%at=2024-04-20T00:16:05.592Z",
+            "<at-date datetime=\"2024-04-20T00:16:05.592Z\">%at=2024-04-20T00:16:05.592Z</at-date>",
         },
     };
 
