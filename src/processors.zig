@@ -93,6 +93,7 @@ pub const CrossPageLinkProcessor = struct {
                 return error.InvalidLinksFound;
             };
             const maybe_alt_text = reference_it.next();
+            const maybe_scale = reference_it.next();
 
             const fspath = ctx.titles.get(referenced_file_basename) orelse {
                 logger.err(
@@ -123,10 +124,7 @@ pub const CrossPageLinkProcessor = struct {
                         },
                     );
                     if (maybe_alt_text) |alt_text| {
-                        try pctx.out.print(
-                            "alt=\"{s}\"",
-                            .{alt_text},
-                        );
+                        try parseAltText(pctx, alt_text, maybe_scale);
                     }
 
                     try pctx.out.print(
@@ -180,6 +178,46 @@ pub const CrossPageLinkProcessor = struct {
                 }
             }
         }
+    }
+    fn parseAltText(
+        pctx: anytype,
+        alt_text: []const u8,
+        maybe_scale: ?[]const u8,
+    ) !void {
+        if (maybe_scale) |scale| {
+            if (parseResolutionFromAlt(scale)) |res| {
+                try pctx.out.print("alt=\"{s}\"", .{alt_text});
+                try pctx.out.print("width=\"{s}\"", .{res[0].?});
+                if (res[1] != null) try pctx.out.print("height=\"{s}\"", .{res[1].?});
+                return;
+            }
+
+            // Third position exists but is not a resolution
+            // Treat scale as a literal value and reconstruct what would have been the alt text
+            try pctx.out.print("alt=\"{s}|{s}\"", .{ alt_text, scale });
+            return;
+        }
+
+        if (parseResolutionFromAlt(alt_text)) |res| {
+            try pctx.out.print("width=\"{s}\"", .{res[0].?});
+            if (res[1] != null) try pctx.out.print("height=\"{s}\"", .{res[1].?});
+            return;
+        }
+
+        try pctx.out.print("alt=\"{s}\"", .{alt_text});
+    }
+
+    fn parseResolutionFromAlt(alt: []const u8) ?[2]?[]const u8 {
+        _ = std.fmt.parseInt(i32, alt, 10) catch {
+            var resolutionSplit = std.mem.split(u8, alt, "x");
+            const width = resolutionSplit.next();
+            const height = resolutionSplit.next();
+
+            _ = std.fmt.parseInt(i32, width.?, 10) catch return null;
+            return .{ width, height };
+        };
+
+        return .{ alt, null };
     }
 };
 
