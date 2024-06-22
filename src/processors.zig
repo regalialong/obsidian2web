@@ -213,19 +213,19 @@ pub const CrossPageLinkProcessor = struct {
     }
 
     fn parseResolution(alt: []const u8) AltResult {
-        const widthExclusively = std.fmt.parseInt(i32, alt, 10) catch {
-            var resolutionSplit = std.mem.split(u8, alt, "x");
-            const width = resolutionSplit.next() orelse return AltResult{ .alt_text = alt };
-            const widthInt = std.fmt.parseInt(i32, width, 10) catch return AltResult{ .alt_text = alt };
-            const heightMaybe = resolutionSplit.next();
+        const width_exclusively = std.fmt.parseInt(i32, alt, 10) catch {
+            var resolution_split = std.mem.split(u8, alt, "x");
+            const width = resolution_split.next() orelse return AltResult{ .alt_text = alt };
+            const width_int = std.fmt.parseInt(i32, width, 10) catch return AltResult{ .alt_text = alt };
+            const height_maybe = resolution_split.next();
 
-            var heightInt: ?isize = null;
-            if (heightMaybe) |heightChars| heightInt = std.fmt.parseInt(i32, heightChars, 10) catch null;
+            var height_int: ?isize = null;
+            if (height_maybe) |heightChars| height_int = std.fmt.parseInt(i32, heightChars, 10) catch null;
 
-            return AltResult{ .resolution = ExplicitResolution{ .width = widthInt, .height = heightInt } };
+            return AltResult{ .resolution = ExplicitResolution{ .width = width_int, .height = height_int } };
         };
 
-        return AltResult{ .resolution = ExplicitResolution{ .width = widthExclusively, .height = null } };
+        return AltResult{ .resolution = ExplicitResolution{ .width = width_exclusively, .height = null } };
     }
 };
 
