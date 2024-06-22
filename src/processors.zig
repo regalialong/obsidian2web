@@ -58,6 +58,9 @@ pub const CrossPageLinkProcessor = struct {
 
     const Self = @This();
 
+    const ExplicitResolution = struct { width: isize, height: ?isize };
+    const AltResult = union(enum) { resolution: ExplicitResolution, alt_text: []const u8 };
+
     pub fn init() !Self {
         return Self{
             .regex = try libpcre.Regex.compile(REGEX, .{ .Ucp = true, .Utf8 = true, .Ungreedy = true }),
@@ -179,45 +182,50 @@ pub const CrossPageLinkProcessor = struct {
             }
         }
     }
-    fn parseAltText(
-        pctx: anytype,
-        alt_text: []const u8,
-        maybe_scale: ?[]const u8,
-    ) !void {
+    fn parseAltText(pctx: anytype, alt_text: []const u8, maybe_scale: ?[]const u8) !void {
         if (maybe_scale) |scale| {
-            if (parseResolution(scale)) |res| {
-                try pctx.out.print("alt=\"{s}\"", .{alt_text});
-                try pctx.out.print("width=\"{s}\"", .{res[0].?});
-                if (res[1]) |height| try pctx.out.print("height=\"{s}\"", .{height});
-                return;
+            const res = parseResolution(scale);
+            switch (res) {
+                .resolution => {
+                    try pctx.out.print("width=\"{d}\"", .{res.resolution.width});
+                    if (res.resolution.height) |height| try pctx.out.print("height=\"{d}\"", .{height});
+                },
+                .alt_text => {
+                    // Third position must be a resolution else treat scale as literal value of alt text instead
+                    try pctx.out.print("alt=\"{s}|{s}\"", .{ alt_text, scale });
+                    return;
+                },
             }
-
-            // Third position exists but is not a resolution
-            // Treat scale as a literal value and reconstruct what would have been the alt text
-            try pctx.out.print("alt=\"{s}|{s}\"", .{ alt_text, scale });
+            try pctx.out.print("alt=\"{s}\"", .{alt_text});
             return;
         }
 
-        if (parseResolution(alt_text)) |res| {
-            try pctx.out.print("width=\"{s}\"", .{res[0].?});
-            if (res[1]) |height| try pctx.out.print("height=\"{s}\"", .{height});
-            return;
+        const res = parseResolution(alt_text);
+        switch (res) {
+            .resolution => {
+                try pctx.out.print("width=\"{d}\"", .{res.resolution.width});
+                if (res.resolution.height) |height| try pctx.out.print("height=\"{d}\"", .{height});
+            },
+            .alt_text => {
+                try pctx.out.print("alt=\"{s}\"", .{alt_text});
+            },
         }
-
-        try pctx.out.print("alt=\"{s}\"", .{alt_text});
     }
 
-    fn parseResolution(alt: []const u8) ?[2]?[]const u8 {
-        _ = std.fmt.parseInt(i32, alt, 10) catch {
+    fn parseResolution(alt: []const u8) AltResult {
+        const widthExclusively = std.fmt.parseInt(i32, alt, 10) catch {
             var resolutionSplit = std.mem.split(u8, alt, "x");
-            const width = resolutionSplit.next() orelse return null;
-            const height = resolutionSplit.next();
+            const width = resolutionSplit.next() orelse return AltResult{ .alt_text = alt };
+            const widthInt = std.fmt.parseInt(i32, width, 10) catch return AltResult{ .alt_text = alt };
+            const heightMaybe = resolutionSplit.next();
 
-            _ = std.fmt.parseInt(i32, width, 10) catch return null;
-            return .{ width, height };
+            var heightInt: ?isize = null;
+            if (heightMaybe) |heightChars| heightInt = std.fmt.parseInt(i32, heightChars, 10) catch null;
+
+            return AltResult{ .resolution = ExplicitResolution{ .width = widthInt, .height = heightInt } };
         };
 
-        return .{ alt, null };
+        return AltResult{ .resolution = ExplicitResolution{ .width = widthExclusively, .height = null } };
     }
 };
 
