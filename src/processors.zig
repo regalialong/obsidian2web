@@ -189,6 +189,8 @@ pub const CrossPageLinkProcessor = struct {
                 .resolution => |resolution| {
                     try pctx.out.print("width=\"{d}\"", .{resolution.width});
                     if (resolution.height) |height| try pctx.out.print("height=\"{d}\"", .{height});
+                    try pctx.out.print("alt=\"{s}\"", .{alt_text});
+                    return;
                 },
                 .alt_text => |thirdpos_alt_text| {
                     // Third position must be a resolution else treat scale as literal value of alt text instead
@@ -196,8 +198,6 @@ pub const CrossPageLinkProcessor = struct {
                     return;
                 },
             }
-            try pctx.out.print("alt=\"{s}\"", .{alt_text});
-            return;
         }
 
         const res = parseResolution(alt_text);
