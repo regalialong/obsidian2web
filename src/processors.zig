@@ -210,11 +210,10 @@ pub const CrossPageLinkProcessor = struct {
     fn parseResolution(alt: []const u8) ?[2]?[]const u8 {
         _ = std.fmt.parseInt(i32, alt, 10) catch {
             var resolutionSplit = std.mem.split(u8, alt, "x");
-            const width = resolutionSplit.next();
-            if (width == null) return null;
+            const width = resolutionSplit.next() orelse return null;
             const height = resolutionSplit.next();
 
-            _ = std.fmt.parseInt(i32, width.?, 10) catch return null;
+            _ = std.fmt.parseInt(i32, width, 10) catch return null;
             return .{ width, height };
         };
 
