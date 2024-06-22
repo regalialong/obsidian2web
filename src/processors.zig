@@ -185,10 +185,10 @@ pub const CrossPageLinkProcessor = struct {
         maybe_scale: ?[]const u8,
     ) !void {
         if (maybe_scale) |scale| {
-            if (parseResolutionFromAlt(scale)) |res| {
+            if (parseResolution(scale)) |res| {
                 try pctx.out.print("alt=\"{s}\"", .{alt_text});
                 try pctx.out.print("width=\"{s}\"", .{res[0].?});
-                if (res[1] != null) try pctx.out.print("height=\"{s}\"", .{res[1].?});
+                if (res[1]) |height| try pctx.out.print("height=\"{s}\"", .{height});
                 return;
             }
 
@@ -198,19 +198,20 @@ pub const CrossPageLinkProcessor = struct {
             return;
         }
 
-        if (parseResolutionFromAlt(alt_text)) |res| {
+        if (parseResolution(alt_text)) |res| {
             try pctx.out.print("width=\"{s}\"", .{res[0].?});
-            if (res[1] != null) try pctx.out.print("height=\"{s}\"", .{res[1].?});
+            if (res[1]) |height| try pctx.out.print("height=\"{s}\"", .{height});
             return;
         }
 
         try pctx.out.print("alt=\"{s}\"", .{alt_text});
     }
 
-    fn parseResolutionFromAlt(alt: []const u8) ?[2]?[]const u8 {
+    fn parseResolution(alt: []const u8) ?[2]?[]const u8 {
         _ = std.fmt.parseInt(i32, alt, 10) catch {
             var resolutionSplit = std.mem.split(u8, alt, "x");
             const width = resolutionSplit.next();
+            if (width == null) return null;
             const height = resolutionSplit.next();
 
             _ = std.fmt.parseInt(i32, width.?, 10) catch return null;
